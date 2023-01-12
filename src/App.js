@@ -11,8 +11,8 @@ function App() {
       var read_buffer = read(fdata, { type: "binary" });
       read_buffer.SheetNames.forEach(function (sheetName) {
         var rowdata = utils.sheet_to_json(read_buffer.Sheets[sheetName]);
-        console.log(JSON.stringify(rowdata));
-        setData(JSON.stringify(rowdata));
+        console.log(rowdata);
+        setData(rowdata);
       });
     };
     reader.readAsBinaryString(input.files[0]);
@@ -21,7 +21,22 @@ function App() {
   return (
     <>
       <input type="file" onChange={uploadExcel} />
-      <div>{data}</div>
+
+      <table>
+        <tr>
+          <th>이름</th>
+          <th>나이</th>
+          <th>성별</th>
+        </tr>
+
+        {data.map((item) => (
+          <tr key={item.id}>
+            <td>{item.first_name}</td>
+            <td>{item.gender}</td>
+            <td>{item.email}</td>
+          </tr>
+        ))}
+      </table>
     </>
   );
 }
