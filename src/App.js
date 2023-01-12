@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { read, utils } from "xlsx";
 
 function App() {
-  const [data, setData] = useState();
+  const [data, setData] = useState([]);
   function uploadExcel(event) {
     var input = event.target;
     var reader = new FileReader();
