@@ -3,7 +3,6 @@ import { read, utils } from "xlsx";
 
 function Data() {
   const [data, setData] = useState([]);
-
   function uploadExcel(event) {
     let input = event.target.files;
     let reader = new FileReader();
@@ -30,8 +29,14 @@ function Data() {
           map.set(data.id, data);
         });
         const result = [...map.values()];
-
         setData(result);
+        const [validData, invalidData] = validateData(result);
+        console.log(validData);
+        console.log(invalidData);
+        const resultData = [...validData, ...invalidData].sort(
+          (a, b) => a.id - b.id
+        );
+        setData(resultData);
       });
     };
     reader.readAsBinaryString(input[0]);
@@ -51,48 +56,60 @@ function Data() {
           item.phone_number
         )
       ) {
-        invalidData.push(item);
-      }
-      if (/^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}/.test(item.phone_number)) {
-        validData.push(item);
-      } else if (item.phone_number.length === 9 || 10 || 11) {
-        const value = item.phone.replace(/[^0-9]/g, "");
-        const firstLength = value.length > 9 ? 3 : 2;
-        const validPhone = [
-          value.slice(0, firstLength),
-          value.slice(firstLength, value.length - 4),
-          value.slice(value.length - 4),
-        ].join("-");
-        validData.push({ ...item, phone_number: validPhone });
+        invalidData.push({ ...item, errorType: "invalid element" });
       } else {
-        invalidData.push(item);
+        if (/^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}/.test(item.phone_number)) {
+          validData.push(item);
+        } else if (item.phone_number.length !== 9 || 10 || 11) {
+          invalidData.push({ ...item, errorType: "invalid phone number" });
+        } else {
+          const value = item.phone_number.replace(/[^0-9]/g, "");
+          const firstLength = value.length > 9 ? 3 : 2;
+          const validPhone = [
+            value.slice(0, firstLength),
+            value.slice(firstLength, value.length - 4),
+            value.slice(value.length - 4),
+          ].join("-");
+          validData.push({ ...item, phone_number: validPhone });
+        }
       }
     });
     return [validData, invalidData];
   }
 
-  //   const [validData, invalidData] = validateData(data);
-
   return (
     <>
       <input type="file" onChange={uploadExcel} />
       <table>
-        <tr>
-          <th>동물이름</th>
-          <th>보호자</th>
-          <th>휴대폰번호</th>
-          <th>동물품종</th>
-          <th>동물종</th>
-        </tr>
-        {data.map((item) => (
-          <tr key={item.id}>
-            <td>{item.petName}</td>
-            <td>{item.name}</td>
-            <td>{item.phone_number}</td>
-            <td>{item.species}</td>
-            <td>{item.type}</td>
+        <thead>
+          <tr>
+            <th>동물이름</th>
+            <th>보호자</th>
+            <th>휴대폰번호</th>
+            <th>동물품종</th>
+            <th>동물종</th>
           </tr>
-        ))}
+        </thead>
+        <tbody>
+          {data.map((item) => (
+            <>
+              <tr key={item.id}>
+                <td>{item.petName}</td>
+                <td>{item.name}</td>
+                <td>{item.phone_number}</td>
+                <td>{item.species}</td>
+                <td>{item.type}</td>
+                <td>
+                  {item.errorType === "invalid phone number"
+                    ? "전화번호를 확인해주세요"
+                    : item.errorType === "invalid element"
+                    ? "빈 항목이 존재합니다"
+                    : null}
+                </td>
+              </tr>
+            </>
+          ))}
+        </tbody>
       </table>
     </>
   );
