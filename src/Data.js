@@ -22,7 +22,13 @@ function Data() {
               : v.종.toLowerCase() === "feline"
               ? "암컷"
               : "etc",
-          phone_number: v.핸드폰 ? v.핸드폰 : v.Mobile ? v.Mobile : v.전화,
+          phone_number: v.핸드폰
+            ? v.핸드폰.toString()
+            : v.Mobile
+            ? v.Mobile.toString()
+            : v.전화
+            ? v.전화.toString()
+            : null,
         }));
         const map = new Map();
         newData.forEach((data) => {
@@ -31,11 +37,9 @@ function Data() {
         const result = [...map.values()];
         setData(result);
         const [validData, invalidData] = validateData(result);
+        const resultData = [...validData, ...invalidData];
         console.log(validData);
         console.log(invalidData);
-        const resultData = [...validData, ...invalidData].sort(
-          (a, b) => a.id - b.id
-        );
         setData(resultData);
       });
     };
@@ -58,19 +62,21 @@ function Data() {
       ) {
         invalidData.push({ ...item, errorType: "invalid element" });
       } else {
-        if (/^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}/.test(item.phone_number)) {
-          validData.push(item);
-        } else if (item.phone_number.length !== 9 || 10 || 11) {
-          invalidData.push({ ...item, errorType: "invalid phone number" });
-        } else {
-          const value = item.phone_number.replace(/[^0-9]/g, "");
+        const value = item.phone_number.replace(/-/g, "");
+        if (value.length === 9 || value.length === 10 || value.length === 11) {
           const firstLength = value.length > 9 ? 3 : 2;
           const validPhone = [
             value.slice(0, firstLength),
             value.slice(firstLength, value.length - 4),
             value.slice(value.length - 4),
           ].join("-");
-          validData.push({ ...item, phone_number: validPhone });
+          if (/^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}/.test(validPhone)) {
+            validData.push({ ...item, phone_number: validPhone });
+          } else {
+            invalidData.push({ ...item, errorType: "invalid phone number" });
+          }
+        } else {
+          invalidData.push({ ...item, errorType: "invalid phone number" });
         }
       }
     });
@@ -92,22 +98,20 @@ function Data() {
         </thead>
         <tbody>
           {data.map((item) => (
-            <>
-              <tr key={item.id}>
-                <td>{item.petName}</td>
-                <td>{item.name}</td>
-                <td>{item.phone_number}</td>
-                <td>{item.species}</td>
-                <td>{item.type}</td>
-                <td>
-                  {item.errorType === "invalid phone number"
-                    ? "전화번호를 확인해주세요"
-                    : item.errorType === "invalid element"
-                    ? "빈 항목이 존재합니다"
-                    : null}
-                </td>
-              </tr>
-            </>
+            <tr key={item.id}>
+              <td>{item.petName}</td>
+              <td>{item.name}</td>
+              <td>{item.phone_number}</td>
+              <td>{item.species}</td>
+              <td>{item.type}</td>
+              <td>
+                {item.errorType === "invalid element"
+                  ? "빈 항목이 존재합니다"
+                  : item.errorType === "invalid phone number"
+                  ? "전화번호를 확인해주세요"
+                  : null}
+              </td>
+            </tr>
           ))}
         </tbody>
       </table>
