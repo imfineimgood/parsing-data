@@ -18,16 +18,16 @@ function Data() {
           species: v.품종,
           type:
             v.종.toLowerCase() === "canine"
-              ? "수컷"
+              ? "개"
               : v.종.toLowerCase() === "feline"
-              ? "암컷"
+              ? "고양이"
               : "etc",
           phone_number: v.핸드폰
-            ? v.핸드폰.toString()
+            ? v.핸드폰
             : v.Mobile
-            ? v.Mobile.toString()
+            ? v.Mobile
             : v.전화
-            ? v.전화.toString()
+            ? v.전화
             : null,
         }));
         const map = new Map();
