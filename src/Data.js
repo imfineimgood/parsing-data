@@ -96,11 +96,10 @@ function Data() {
       Object.keys(item).forEach((key) => {
         if (item[key] === undefined) {
           item.errorType.push(key);
+        } else if (!regphone.test(item.phone_number)) {
+          item.errorType.push("phone_number");
         }
       });
-      if (!regphone.test(item.phone_number)) {
-        item.errorType.push("phone_number");
-      }
     });
   };
 
