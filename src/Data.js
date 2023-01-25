@@ -3,6 +3,8 @@ import { read, utils } from "xlsx";
 
 function Data() {
   const [data, setData] = useState([]);
+  const regphone = /^0[0-9]{1,2}-[0-9]{3,4}-[0-9]{4}/;
+
   function uploadExcel(event) {
     let input = event.target.files;
     let reader = new FileReader();
@@ -11,32 +13,10 @@ function Data() {
       let read_buffer = read(fdata, { type: "binary" });
       read_buffer.SheetNames.forEach(function (sheetName) {
         let rowdata = utils.sheet_to_json(read_buffer.Sheets[sheetName]);
-        const newData = rowdata.map((v) => ({
-          id: v.동물번호 ? v.동물번호 : v.환자ID,
-          petName: v.환자 ? v.환자 : v.동물명,
-          name: v.고객명 ? v.고객명 : v.보호자,
-          species: v.품종,
-          type:
-            v.종.toLowerCase() === "canine"
-              ? "수컷"
-              : v.종.toLowerCase() === "feline"
-              ? "암컷"
-              : "etc",
-          phone_number: v.핸드폰
-            ? v.핸드폰.toString()
-            : v.Mobile
-            ? v.Mobile.toString()
-            : v.전화
-            ? v.전화.toString()
-            : null,
-        }));
-        const map = new Map();
-        newData.forEach((data) => {
-          map.set(data.id, data);
-        });
-        const result = [...map.values()];
-        setData(result);
+        const newData = setDefaultData(rowdata);
+        const result = checkDuplicate(newData);
         const [validData, invalidData] = validateData(result);
+        checkError(invalidData);
         const resultData = [...validData, ...invalidData];
         console.log(validData);
         console.log(invalidData);
@@ -49,6 +29,7 @@ function Data() {
   function validateData(data) {
     const validData = [];
     const invalidData = [];
+
     data.forEach((item) => {
       if (
         !(
@@ -60,7 +41,7 @@ function Data() {
           item.phone_number
         )
       ) {
-        invalidData.push({ ...item, errorType: "invalid element" });
+        invalidData.push(item);
       } else {
         const value = item.phone_number.replace(/-/g, "");
         if (value.length === 9 || value.length === 10 || value.length === 11) {
@@ -70,18 +51,57 @@ function Data() {
             value.slice(firstLength, value.length - 4),
             value.slice(value.length - 4),
           ].join("-");
-          if (/^[0-9]{2,3}-[0-9]{3,4}-[0-9]{4}/.test(validPhone)) {
+          if (regphone.test(validPhone)) {
             validData.push({ ...item, phone_number: validPhone });
           } else {
-            invalidData.push({ ...item, errorType: "invalid phone number" });
+            invalidData.push(item);
           }
         } else {
-          invalidData.push({ ...item, errorType: "invalid phone number" });
+          invalidData.push(item);
         }
       }
     });
     return [validData, invalidData];
   }
+
+  const setDefaultData = (data) => {
+    const newData = data.map((v) => ({
+      id: v.동물번호 ? v.동물번호 : v.환자ID,
+      petName: v.환자 ? v.환자 : v.동물명,
+      name: v.고객명 ? v.고객명 : v.보호자,
+      species: v.품종,
+      type:
+        v.종.toLowerCase() === "canine"
+          ? "개"
+          : v.종.toLowerCase() === "feline"
+          ? "고양이"
+          : "etc",
+      phone_number: v.핸드폰 ? v.핸드폰 : v.Mobile ? v.Mobile : v.전화,
+      errorType: [],
+    }));
+    return newData;
+  };
+
+  const checkDuplicate = (data) => {
+    const map = new Map();
+    data.forEach((data) => {
+      map.set(data.id, data);
+    });
+    const result = [...map.values()];
+    return result;
+  };
+
+  const checkError = (data) => {
+    data.forEach((item) => {
+      Object.keys(item).forEach((key) => {
+        if (item[key] === undefined) {
+          item.errorType.push(key);
+        } else if (!regphone.test(item.phone_number)) {
+          item.errorType.push("phone_number");
+        }
+      });
+    });
+  };
 
   return (
     <>
@@ -99,17 +119,35 @@ function Data() {
         <tbody>
           {data.map((item) => (
             <tr key={item.id}>
-              <td>{item.petName}</td>
-              <td>{item.name}</td>
-              <td>{item.phone_number}</td>
-              <td>{item.species}</td>
-              <td>{item.type}</td>
               <td>
-                {item.errorType === "invalid element"
-                  ? "빈 항목이 존재합니다"
-                  : item.errorType === "invalid phone number"
-                  ? "전화번호를 확인해주세요"
-                  : null}
+                {item.petName}
+                {item.errorType.includes("petName") && (
+                  <span style={{ color: "red" }}>확인해주세요</span>
+                )}
+              </td>
+              <td>
+                {item.name}
+                {item.errorType.includes("name") && (
+                  <span style={{ color: "red" }}>확인해주세요</span>
+                )}
+              </td>
+              <td>
+                {item.phone_number}
+                {item.errorType.includes("phone_number") && (
+                  <span style={{ color: "red" }}>확인해주세요</span>
+                )}
+              </td>
+              <td>
+                {item.species}
+                {item.errorType.includes("species") && (
+                  <span style={{ color: "red" }}>확인해주세요</span>
+                )}
+              </td>
+              <td>
+                {item.type}
+                {item.errorType.includes("type") && (
+                  <span style={{ color: "red" }}>확인해주세요</span>
+                )}
               </td>
             </tr>
           ))}
