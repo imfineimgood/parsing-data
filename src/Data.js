@@ -1,8 +1,12 @@
-import React, { useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { read, utils } from "xlsx";
+import DataList from "./DataList";
 
-function Data() {
+const Data = () => {
   const [data, setData] = useState([]);
+
+  const validData = [];
+  const invalidData = [];
   const regphone = /^0[0-9]{1,2}-[0-9]{3,4}-[0-9]{4}/;
 
   function uploadExcel(event) {
@@ -21,16 +25,14 @@ function Data() {
         console.log(validData);
         console.log(invalidData);
         setData(resultData);
+        console.log(resultData);
       });
     };
     reader.readAsBinaryString(input[0]);
   }
 
-  function validateData(data) {
-    const validData = [];
-    const invalidData = [];
-
-    data.forEach((item) => {
+  const validateData = (data) => {
+    const validData = data.filter((item) => {
       if (
         !(
           item.id &&
@@ -41,7 +43,7 @@ function Data() {
           item.phone_number
         )
       ) {
-        invalidData.push(item);
+        return false;
       } else {
         const value = item.phone_number.replace(/-/g, "");
         if (value.length === 9 || value.length === 10 || value.length === 11) {
@@ -52,17 +54,19 @@ function Data() {
             value.slice(value.length - 4),
           ].join("-");
           if (regphone.test(validPhone)) {
-            validData.push({ ...item, phone_number: validPhone });
+            item.phone_number = validPhone;
+            return true;
           } else {
-            invalidData.push(item);
+            return false;
           }
         } else {
-          invalidData.push(item);
+          return false;
         }
       }
     });
+    const invalidData = data.filter((item) => !validData.includes(item));
     return [validData, invalidData];
-  }
+  };
 
   const setDefaultData = (data) => {
     const newData = data.map((v) => ({
@@ -70,12 +74,7 @@ function Data() {
       petName: v.환자 ? v.환자 : v.동물명,
       name: v.고객명 ? v.고객명 : v.보호자,
       species: v.품종,
-      type:
-        v.종.toLowerCase() === "canine"
-          ? "개"
-          : v.종.toLowerCase() === "feline"
-          ? "고양이"
-          : "etc",
+      type: v.종,
       phone_number: v.핸드폰 ? v.핸드폰 : v.Mobile ? v.Mobile : v.전화,
       errorType: [],
     }));
@@ -107,6 +106,7 @@ function Data() {
     });
   };
 
+  const memoData = useMemo(() => validateData, [DataList]);
   return (
     <>
       <input type="file" onChange={uploadExcel} />
@@ -122,43 +122,12 @@ function Data() {
         </thead>
         <tbody>
           {data.map((item) => (
-            <tr key={item.id}>
-              <td>
-                {item.petName}
-                {item.errorType.includes("petName") && (
-                  <span style={{ color: "red" }}>확인해주세요</span>
-                )}
-              </td>
-              <td>
-                {item.name}
-                {item.errorType.includes("name") && (
-                  <span style={{ color: "red" }}>확인해주세요</span>
-                )}
-              </td>
-              <td>
-                {item.phone_number}
-                {item.errorType.includes("phone_number") && (
-                  <span style={{ color: "red" }}>확인해주세요</span>
-                )}
-              </td>
-              <td>
-                {item.species}
-                {item.errorType.includes("species") && (
-                  <span style={{ color: "red" }}>확인해주세요</span>
-                )}
-              </td>
-              <td>
-                {item.type}
-                {item.errorType.includes("type") && (
-                  <span style={{ color: "red" }}>확인해주세요</span>
-                )}
-              </td>
-            </tr>
+            <DataList {...item} key={item.id} setData={setData}></DataList>
           ))}
         </tbody>
       </table>
     </>
   );
-}
+};
 
 export default Data;
