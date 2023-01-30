@@ -42,99 +42,69 @@ const DataList = ({ item, onValidate, onItemChange }) => {
     <>
       <tr>
         <td>
-          {item.errorType.includes("petName") ? (
-            <>
-              <input
-                type="text"
-                name="petName"
-                value={dataValue.petName}
-                onChange={handleForm}
-              />
-              {!isPetNameValid ? (
-                <div style={{ color: "red", fontSize: "5px" }}>
-                  확인해주세요
-                </div>
-              ) : null}
-            </>
-          ) : (
-            item.petName
-          )}
+          <>
+            <input
+              type="text"
+              name="petName"
+              value={dataValue.petName}
+              onChange={handleForm}
+            />
+            {item.errorType.includes("petName") ? (
+              <div style={{ color: "red", fontSize: "5px" }}>확인해주세요</div>
+            ) : null}
+          </>
         </td>
         <td>
-          {item.errorType.includes("name") ? (
-            <>
-              <input
-                type="text"
-                name="name"
-                value={dataValue.name}
-                onChange={handleForm}
-              />
-              {!isNameValid ? (
-                <div style={{ color: "red", fontSize: "5px" }}>
-                  확인해주세요
-                </div>
-              ) : null}
-            </>
-          ) : (
-            item.name
-          )}
+          <>
+            <input
+              type="text"
+              name="name"
+              value={dataValue.name}
+              onChange={handleForm}
+            />
+            {item.errorType.includes("name") ? (
+              <div style={{ color: "red", fontSize: "5px" }}>확인해주세요</div>
+            ) : null}
+          </>
         </td>
         <td>
-          {item.errorType.includes("phone_number") ? (
-            <>
-              <input
-                type="text"
-                name="phone_number"
-                value={dataValue.phone_number}
-                onChange={handleForm}
-              />
-              {!isPhoneNumberValid ? (
-                <div style={{ color: "red", fontSize: "5px" }}>
-                  확인해주세요
-                </div>
-              ) : null}
-            </>
-          ) : (
-            item.phone_number
-          )}
+          <>
+            <input
+              type="text"
+              name="phone_number"
+              value={dataValue.phone_number}
+              onChange={handleForm}
+            />
+            {item.errorType.includes("phone_number") ? (
+              <div style={{ color: "red", fontSize: "5px" }}>확인해주세요</div>
+            ) : null}
+          </>
         </td>
         <td>
-          {item.errorType.includes("species") ? (
-            <>
-              <input
-                type="text"
-                name="species"
-                value={dataValue.species}
-                onChange={handleForm}
-              />
-              {!isSpeciesValid ? (
-                <div style={{ color: "red", fontSize: "5px" }}>
-                  확인해주세요
-                </div>
-              ) : null}
-            </>
-          ) : (
-            item.species
-          )}
+          <>
+            <input
+              type="text"
+              name="species"
+              value={dataValue.species}
+              onChange={handleForm}
+            />
+            {item.errorType.includes("species") ? (
+              <div style={{ color: "red", fontSize: "5px" }}>확인해주세요</div>
+            ) : null}
+          </>
         </td>
         <td>
-          {item.errorType.includes("type") ? (
-            <>
-              <input
-                type="text"
-                name="type"
-                value={dataValue.type}
-                onChange={handleForm}
-              />
-              {!isTypeValid ? (
-                <div style={{ color: "red", fontSize: "5px" }}>
-                  확인해주세요
-                </div>
-              ) : null}
-            </>
-          ) : (
-            item.type
-          )}
+          <>
+            <input
+              type="text"
+              name="type"
+              value={dataValue.type}
+              onChange={handleForm}
+            />
+            {item.errorType.includes("type") ? (
+              <div style={{ color: "red", fontSize: "5px" }}>확인해주세요</div>
+            ) : null}
+          </>
         </td>
       </tr>
     </>

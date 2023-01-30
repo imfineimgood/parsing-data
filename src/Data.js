@@ -4,6 +4,7 @@ import DataList from "./DataList";
 
 const Data = () => {
   const [data, setData] = useState([]);
+  const [reData, setReData] = useState([]);
 
   const validData = [];
   const invalidData = [];
@@ -116,6 +117,13 @@ const Data = () => {
       } else {
         if (key === "phone_number") {
           checkPhoneNumber(item);
+        } else {
+          const index = item.errorType.findIndex((element) => {
+            return element === key;
+          });
+          if (index !== -1) {
+            item.errorType.splice(index, 1);
+          }
         }
       }
     });
@@ -131,11 +139,12 @@ const Data = () => {
   const onItemChange = (changedItem) => {
     const refreshedData = data.map((item) => {
       if (changedItem.id === item.id) {
-        return checkError(changedItem);
+        return changedItem;
       } else {
         return item;
       }
     });
+    checkError(refreshedData);
     setData(refreshedData);
     console.log(data);
   };
@@ -156,7 +165,6 @@ const Data = () => {
         <tbody>
           {data.map((item) => (
             <DataList
-              data={data}
               item={item}
               key={item.id}
               onValidate={validateItem}
