@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import { read, utils } from "xlsx";
+import DataList from "./DataList";
 
-function Data() {
+const Data = () => {
   const [data, setData] = useState([]);
+
+  const validData = [];
+  const invalidData = [];
   const regphone = /^0[0-9]{1,2}-[0-9]{3,4}-[0-9]{4}/;
 
   function uploadExcel(event) {
@@ -18,51 +22,57 @@ function Data() {
         const [validData, invalidData] = validateData(result);
         checkError(invalidData);
         const resultData = [...validData, ...invalidData];
-        console.log(validData);
-        console.log(invalidData);
         setData(resultData);
       });
     };
     reader.readAsBinaryString(input[0]);
   }
 
-  function validateData(data) {
-    const validData = [];
-    const invalidData = [];
+  const validatePhoneNumber = (phoneNumber) => {
+    const value = phoneNumber.replace(/-/g, "");
+    if (!(value.length === 9 || value.length === 10 || value.length === 11)) {
+      return false;
+    }
 
-    data.forEach((item) => {
-      if (
-        !(
-          item.id &&
-          item.petName &&
-          item.name &&
-          item.species &&
-          item.type &&
-          item.phone_number
-        )
-      ) {
-        invalidData.push(item);
-      } else {
-        const value = item.phone_number.replace(/-/g, "");
-        if (value.length === 9 || value.length === 10 || value.length === 11) {
-          const firstLength = value.length > 9 ? 3 : 2;
-          const validPhone = [
-            value.slice(0, firstLength),
-            value.slice(firstLength, value.length - 4),
-            value.slice(value.length - 4),
-          ].join("-");
-          if (regphone.test(validPhone)) {
-            validData.push({ ...item, phone_number: validPhone });
-          } else {
-            invalidData.push(item);
-          }
-        } else {
-          invalidData.push(item);
-        }
-      }
-    });
+    const firstLength = value.length > 9 ? 3 : 2;
+    const validPhone = [
+      value.slice(0, firstLength),
+      value.slice(firstLength, value.length - 4),
+      value.slice(value.length - 4),
+    ].join("-");
+    if (!regphone.test(validPhone)) {
+      return false;
+    }
+
+    return validPhone;
+  };
+
+  const validateItem = (item) => {
+    if (
+      !item.id ||
+      !item.petName ||
+      !item.name ||
+      !item.species ||
+      !item.type ||
+      !item.phone_number
+    ) {
+      return false;
+    }
+
+    const phoneNumber = validatePhoneNumber(item.phone_number);
+    if (!phoneNumber) {
+      return false;
+    }
+
+    item.phone_number = phoneNumber;
+    return true;
+  };
+
+  const validateData = (data) => {
+    const validData = data.filter(validateItem);
+    const invalidData = data.filter((item) => !validData.includes(item));
     return [validData, invalidData];
-  }
+  };
 
   const setDefaultData = (data) => {
     const newData = data.map((v) => ({
@@ -70,12 +80,7 @@ function Data() {
       petName: v.환자 ? v.환자 : v.동물명,
       name: v.고객명 ? v.고객명 : v.보호자,
       species: v.품종,
-      type:
-        v.종.toLowerCase() === "canine"
-          ? "개"
-          : v.종.toLowerCase() === "feline"
-          ? "고양이"
-          : "etc",
+      type: v.종,
       phone_number: v.핸드폰 ? v.핸드폰 : v.Mobile ? v.Mobile : v.전화,
       errorType: [],
     }));
@@ -91,20 +96,48 @@ function Data() {
     return result;
   };
 
-  const checkError = (data) => {
-    data.forEach((item) => {
-      Object.keys(item).forEach((key) => {
-        if (item[key] === undefined) {
-          item.errorType.push(key);
-        }
+  const checkPhoneNumber = (item) => {
+    if (!regphone.test(item.phone_number)) {
+      item.errorType.push("phone_number");
+    } else {
+      const index = item.errorType.findIndex((element) => {
+        return element === "phone_number";
       });
-      if (
-        item.phone_number !== undefined &&
-        !regphone.test(item.phone_number)
-      ) {
-        item.errorType.push("phone_number");
+      if (index !== -1) {
+        item.errorType.splice(index, 1);
+      }
+    }
+  };
+
+  const checkProperties = (item) => {
+    Object.keys(item).forEach((key) => {
+      if (item[key] === undefined) {
+        item.errorType.push(key);
+      } else {
+        if (key === "phone_number") {
+          checkPhoneNumber(item);
+        }
       }
     });
+  };
+
+  const checkError = (data) => {
+    data.forEach((item) => {
+      checkProperties(item);
+      checkPhoneNumber(item);
+    });
+  };
+
+  const onItemChange = (changedItem) => {
+    const refreshedData = data.map((item) => {
+      if (changedItem.id === item.id) {
+        return checkError(changedItem);
+      } else {
+        return item;
+      }
+    });
+    setData(refreshedData);
+    console.log(data);
   };
 
   return (
@@ -122,43 +155,18 @@ function Data() {
         </thead>
         <tbody>
           {data.map((item) => (
-            <tr key={item.id}>
-              <td>
-                {item.petName}
-                {item.errorType.includes("petName") && (
-                  <span style={{ color: "red" }}>확인해주세요</span>
-                )}
-              </td>
-              <td>
-                {item.name}
-                {item.errorType.includes("name") && (
-                  <span style={{ color: "red" }}>확인해주세요</span>
-                )}
-              </td>
-              <td>
-                {item.phone_number}
-                {item.errorType.includes("phone_number") && (
-                  <span style={{ color: "red" }}>확인해주세요</span>
-                )}
-              </td>
-              <td>
-                {item.species}
-                {item.errorType.includes("species") && (
-                  <span style={{ color: "red" }}>확인해주세요</span>
-                )}
-              </td>
-              <td>
-                {item.type}
-                {item.errorType.includes("type") && (
-                  <span style={{ color: "red" }}>확인해주세요</span>
-                )}
-              </td>
-            </tr>
+            <DataList
+              data={data}
+              item={item}
+              key={item.id}
+              onValidate={validateItem}
+              onItemChange={onItemChange}
+            ></DataList>
           ))}
         </tbody>
       </table>
     </>
   );
-}
+};
 
 export default Data;
