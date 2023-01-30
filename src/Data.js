@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useState } from "react";
 import { read, utils } from "xlsx";
 import DataList from "./DataList";
 
@@ -22,48 +22,54 @@ const Data = () => {
         const [validData, invalidData] = validateData(result);
         checkError(invalidData);
         const resultData = [...validData, ...invalidData];
-        console.log(validData);
-        console.log(invalidData);
         setData(resultData);
-        console.log(resultData);
       });
     };
     reader.readAsBinaryString(input[0]);
   }
 
+  const validatePhoneNumber = (phoneNumber) => {
+    const value = phoneNumber.replace(/-/g, "");
+    if (!(value.length === 9 || value.length === 10 || value.length === 11)) {
+      return false;
+    }
+
+    const firstLength = value.length > 9 ? 3 : 2;
+    const validPhone = [
+      value.slice(0, firstLength),
+      value.slice(firstLength, value.length - 4),
+      value.slice(value.length - 4),
+    ].join("-");
+    if (!regphone.test(validPhone)) {
+      return false;
+    }
+
+    return validPhone;
+  };
+
+  const validateItem = (item) => {
+    if (
+      !item.id ||
+      !item.petName ||
+      !item.name ||
+      !item.species ||
+      !item.type ||
+      !item.phone_number
+    ) {
+      return false;
+    }
+
+    const phoneNumber = validatePhoneNumber(item.phone_number);
+    if (!phoneNumber) {
+      return false;
+    }
+
+    item.phone_number = phoneNumber;
+    return true;
+  };
+
   const validateData = (data) => {
-    const validData = data.filter((item) => {
-      if (
-        !(
-          item.id &&
-          item.petName &&
-          item.name &&
-          item.species &&
-          item.type &&
-          item.phone_number
-        )
-      ) {
-        return false;
-      } else {
-        const value = item.phone_number.replace(/-/g, "");
-        if (value.length === 9 || value.length === 10 || value.length === 11) {
-          const firstLength = value.length > 9 ? 3 : 2;
-          const validPhone = [
-            value.slice(0, firstLength),
-            value.slice(firstLength, value.length - 4),
-            value.slice(value.length - 4),
-          ].join("-");
-          if (regphone.test(validPhone)) {
-            item.phone_number = validPhone;
-            return true;
-          } else {
-            return false;
-          }
-        } else {
-          return false;
-        }
-      }
-    });
+    const validData = data.filter(validateItem);
     const invalidData = data.filter((item) => !validData.includes(item));
     return [validData, invalidData];
   };
@@ -90,23 +96,50 @@ const Data = () => {
     return result;
   };
 
-  const checkError = (data) => {
-    data.forEach((item) => {
-      Object.keys(item).forEach((key) => {
-        if (item[key] === undefined) {
-          item.errorType.push(key);
-        }
+  const checkPhoneNumber = (item) => {
+    if (!regphone.test(item.phone_number)) {
+      item.errorType.push("phone_number");
+    } else {
+      const index = item.errorType.findIndex((element) => {
+        return element === "phone_number";
       });
-      if (
-        item.phone_number !== undefined &&
-        !regphone.test(item.phone_number)
-      ) {
-        item.errorType.push("phone_number");
+      if (index !== -1) {
+        item.errorType.splice(index, 1);
+      }
+    }
+  };
+
+  const checkProperties = (item) => {
+    Object.keys(item).forEach((key) => {
+      if (item[key] === undefined) {
+        item.errorType.push(key);
+      } else {
+        if (key === "phone_number") {
+          checkPhoneNumber(item);
+        }
       }
     });
   };
 
-  const memoData = useMemo(() => validateData, [DataList]);
+  const checkError = (data) => {
+    data.forEach((item) => {
+      checkProperties(item);
+      checkPhoneNumber(item);
+    });
+  };
+
+  const onItemChange = (changedItem) => {
+    const refreshedData = data.map((item) => {
+      if (changedItem.id === item.id) {
+        return checkError(changedItem);
+      } else {
+        return item;
+      }
+    });
+    setData(refreshedData);
+    console.log(data);
+  };
+
   return (
     <>
       <input type="file" onChange={uploadExcel} />
@@ -122,7 +155,13 @@ const Data = () => {
         </thead>
         <tbody>
           {data.map((item) => (
-            <DataList {...item} key={item.id} setData={setData}></DataList>
+            <DataList
+              data={data}
+              item={item}
+              key={item.id}
+              onValidate={validateItem}
+              onItemChange={onItemChange}
+            ></DataList>
           ))}
         </tbody>
       </table>

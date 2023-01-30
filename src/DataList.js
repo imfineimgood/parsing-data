@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const DataList = (item, memoData, setData) => {
+const DataList = ({ item, onValidate, onItemChange }) => {
   const regphone = /^0[0-9]{1,2}-[0-9]{3,4}-[0-9]{4}/;
 
   const [dataValue, setDataValue] = useState({
@@ -10,14 +10,24 @@ const DataList = (item, memoData, setData) => {
     species: item.species,
     type: item.type,
     phone_number: item.phone_number,
+    errorType: item.errorType,
   });
 
   const handleForm = (e) => {
     const { name, value } = e.target;
-    setDataValue({ ...dataValue, [name]: value });
+    if (!onValidate) {
+      throw Error("유효하지 않음");
+    } else {
+      const changedItem = {
+        ...dataValue,
+        [name]: value,
+        valid: onValidate(dataValue),
+      };
+      setDataValue(changedItem);
+      onItemChange && onItemChange(changedItem);
+    }
+    console.log(dataValue);
   };
-
-  const onClick = () => {};
 
   const isPetNameValid = dataValue.petName !== undefined;
   const isNameValid = dataValue.name !== undefined;
@@ -27,13 +37,6 @@ const DataList = (item, memoData, setData) => {
     (dataValue.type === "개") |
     (dataValue.type === "고양이") |
     (dataValue.type === "기타");
-
-  const isAllValid =
-    isPetNameValid &&
-    isNameValid &&
-    isSpeciesValid &&
-    isPhoneNumberValid &&
-    isTypeValid;
 
   return (
     <>
@@ -65,7 +68,7 @@ const DataList = (item, memoData, setData) => {
                 name="name"
                 value={dataValue.name}
                 onChange={handleForm}
-              />{" "}
+              />
               {!isNameValid ? (
                 <div style={{ color: "red", fontSize: "5px" }}>
                   확인해주세요
@@ -84,7 +87,7 @@ const DataList = (item, memoData, setData) => {
                 name="phone_number"
                 value={dataValue.phone_number}
                 onChange={handleForm}
-              />{" "}
+              />
               {!isPhoneNumberValid ? (
                 <div style={{ color: "red", fontSize: "5px" }}>
                   확인해주세요
@@ -103,7 +106,7 @@ const DataList = (item, memoData, setData) => {
                 name="species"
                 value={dataValue.species}
                 onChange={handleForm}
-              />{" "}
+              />
               {!isSpeciesValid ? (
                 <div style={{ color: "red", fontSize: "5px" }}>
                   확인해주세요
@@ -122,7 +125,7 @@ const DataList = (item, memoData, setData) => {
                 name="type"
                 value={dataValue.type}
                 onChange={handleForm}
-              />{" "}
+              />
               {!isTypeValid ? (
                 <div style={{ color: "red", fontSize: "5px" }}>
                   확인해주세요
@@ -133,11 +136,6 @@ const DataList = (item, memoData, setData) => {
             item.type
           )}
         </td>
-        {isAllValid ? (
-          <td>
-            <button onClick={onClick}>수정</button>
-          </td>
-        ) : null}
       </tr>
     </>
   );
