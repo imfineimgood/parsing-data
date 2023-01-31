@@ -91,7 +91,6 @@ const Data = () => {
   const setType = (data) => {
     data.forEach((item) => {
       if (item.type) {
-        console.log(item.type);
         item.type =
           item.type.toLowerCase() === "feline"
             ? "고양이"
@@ -163,9 +162,7 @@ const Data = () => {
         return item;
       }
     });
-
     setData(refreshedData);
-    console.log(data);
   };
 
   const sortData = (data) => {
@@ -177,8 +174,12 @@ const Data = () => {
   return (
     <>
       <input type="file" onChange={uploadExcel} />
-      <table>
-        <thead style={{ display: "flex", justifyContent: "space-between" }}>
+      <table style={{ width: "95%", margin: "auto" }}>
+        <thead
+          style={{
+            height: "45px",
+          }}
+        >
           <tr>
             {TITLE_MAP.map((item) => (
               <th>{item}</th>
@@ -197,7 +198,13 @@ const Data = () => {
         </tbody>
       </table>
       <button
-        style={{ width: "80%", backgroundColor: "purple" }}
+        style={{
+          width: "90px",
+          height: "30px",
+          backgroundColor: "#7d3fff",
+          color: "white",
+          border: "none",
+        }}
         onClick={() => {
           sortData(data);
         }}
