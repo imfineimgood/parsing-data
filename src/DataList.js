@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 
 const DataList = ({ item, onValidate, onItemChange }) => {
-  const regphone = /^0[0-9]{1,2}-[0-9]{3,4}-[0-9]{4}/;
-
   const [dataValue, setDataValue] = useState({
     id: item.id,
     petName: item.petName,
@@ -15,12 +13,18 @@ const DataList = ({ item, onValidate, onItemChange }) => {
 
   const handleForm = (e) => {
     const { name, value } = e.target;
+    let formatPhoneValue = value;
     if (!onValidate) {
       throw Error("유효하지 않음");
     } else {
+      if (name === "phone_number") {
+        formatPhoneValue = value
+          .replace(/[^0-9]/g, "")
+          .replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`);
+      }
       const changedItem = {
         ...dataValue,
-        [name]: value,
+        [name]: formatPhoneValue,
         valid: onValidate(dataValue),
       };
       setDataValue(changedItem);
@@ -28,15 +32,6 @@ const DataList = ({ item, onValidate, onItemChange }) => {
     }
     console.log(dataValue);
   };
-
-  const isPetNameValid = dataValue.petName !== undefined;
-  const isNameValid = dataValue.name !== undefined;
-  const isSpeciesValid = dataValue.species !== undefined;
-  const isPhoneNumberValid = regphone.test(dataValue.phone_number);
-  const isTypeValid =
-    (dataValue.type === "개") |
-    (dataValue.type === "고양이") |
-    (dataValue.type === "기타");
 
   return (
     <>
@@ -112,3 +107,5 @@ const DataList = ({ item, onValidate, onItemChange }) => {
 };
 
 export default DataList;
+
+const INPUT_MAP = ["petName", "name", "phone_number", "species", "type"];

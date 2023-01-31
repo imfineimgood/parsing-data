@@ -4,10 +4,7 @@ import DataList from "./DataList";
 
 const Data = () => {
   const [data, setData] = useState([]);
-  const [reData, setReData] = useState([]);
 
-  const validData = [];
-  const invalidData = [];
   const regphone = /^0[0-9]{1,2}-[0-9]{3,4}-[0-9]{4}/;
 
   function uploadExcel(event) {
@@ -19,15 +16,22 @@ const Data = () => {
       read_buffer.SheetNames.forEach(function (sheetName) {
         let rowdata = utils.sheet_to_json(read_buffer.Sheets[sheetName]);
         const newData = setDefaultData(rowdata);
+        setType(newData);
         const result = checkDuplicate(newData);
-        const [validData, invalidData] = validateData(result);
-        checkError(invalidData);
-        const resultData = [...validData, ...invalidData];
-        setData(resultData);
+        sortData(result);
       });
     };
     reader.readAsBinaryString(input[0]);
   }
+
+  const formatPhoneNumber = (value) => {
+    const firstLength = value.length > 9 ? 3 : 2;
+    return [
+      value.slice(0, firstLength),
+      value.slice(firstLength, value.length - 4),
+      value.slice(value.length - 4),
+    ].join("-");
+  };
 
   const validatePhoneNumber = (phoneNumber) => {
     const value = phoneNumber.replace(/-/g, "");
@@ -35,12 +39,8 @@ const Data = () => {
       return false;
     }
 
-    const firstLength = value.length > 9 ? 3 : 2;
-    const validPhone = [
-      value.slice(0, firstLength),
-      value.slice(firstLength, value.length - 4),
-      value.slice(value.length - 4),
-    ].join("-");
+    const validPhone = formatPhoneNumber(value);
+
     if (!regphone.test(validPhone)) {
       return false;
     }
@@ -88,6 +88,21 @@ const Data = () => {
     return newData;
   };
 
+  const setType = (data) => {
+    data.forEach((item) => {
+      if (item.type) {
+        console.log(item.type);
+        item.type =
+          item.type.toLowerCase() === "feline"
+            ? "고양이"
+            : item.type.toLowerCase() === "canine"
+            ? "개"
+            : "etc";
+        return item.type;
+      }
+    });
+  };
+
   const checkDuplicate = (data) => {
     const map = new Map();
     data.forEach((data) => {
@@ -99,7 +114,9 @@ const Data = () => {
 
   const checkPhoneNumber = (item) => {
     if (!regphone.test(item.phone_number)) {
-      item.errorType.push("phone_number");
+      if (item.errorType.indexOf("phone_number") === -1) {
+        item.errorType.push("phone_number");
+      }
     } else {
       const index = item.errorType.findIndex((element) => {
         return element === "phone_number";
@@ -112,8 +129,10 @@ const Data = () => {
 
   const checkProperties = (item) => {
     Object.keys(item).forEach((key) => {
-      if (item[key] === undefined) {
-        item.errorType.push(key);
+      if (!item[key]) {
+        if (item.errorType.indexOf(key) === -1) {
+          item.errorType.push(key);
+        }
       } else {
         if (key === "phone_number") {
           checkPhoneNumber(item);
@@ -132,34 +151,38 @@ const Data = () => {
   const checkError = (data) => {
     data.forEach((item) => {
       checkProperties(item);
-      checkPhoneNumber(item);
     });
   };
 
   const onItemChange = (changedItem) => {
     const refreshedData = data.map((item) => {
       if (changedItem.id === item.id) {
+        checkError([changedItem]);
         return changedItem;
       } else {
         return item;
       }
     });
-    checkError(refreshedData);
+
     setData(refreshedData);
     console.log(data);
+  };
+
+  const sortData = (data) => {
+    const [validData, invalidData] = validateData(data);
+    checkError(invalidData);
+    setData([...validData, ...invalidData]);
   };
 
   return (
     <>
       <input type="file" onChange={uploadExcel} />
       <table>
-        <thead>
+        <thead style={{ display: "flex", justifyContent: "space-between" }}>
           <tr>
-            <th>동물이름</th>
-            <th>보호자</th>
-            <th>휴대폰번호</th>
-            <th>동물품종</th>
-            <th>동물종</th>
+            {TITLE_MAP.map((item) => (
+              <th>{item}</th>
+            ))}
           </tr>
         </thead>
         <tbody>
@@ -173,8 +196,18 @@ const Data = () => {
           ))}
         </tbody>
       </table>
+      <button
+        style={{ width: "80%", backgroundColor: "purple" }}
+        onClick={() => {
+          sortData(data);
+        }}
+      >
+        완료
+      </button>
     </>
   );
 };
 
 export default Data;
+
+const TITLE_MAP = ["동물이름", "보호자", "휴대폰번호", "동물품종", "동물종"];
