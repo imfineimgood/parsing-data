@@ -39,7 +39,7 @@ const DataList = ({ item, onValidate, onItemChange }) => {
     <>
       <tr>
         {INPUT_MAP.map((element) => (
-          <td style={{ height: "50px" }}>
+          <td key={element} style={{ height: "50px" }}>
             <input
               type="text"
               name={element}

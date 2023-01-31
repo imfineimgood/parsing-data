@@ -181,8 +181,8 @@ const Data = () => {
           }}
         >
           <tr>
-            {TITLE_MAP.map((item) => (
-              <th>{item}</th>
+            {TITLE_MAP.map((item, i) => (
+              <th key={i}>{item}</th>
             ))}
           </tr>
         </thead>
