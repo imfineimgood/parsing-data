@@ -4,6 +4,8 @@ import DataList from "./DataList";
 
 const Data = () => {
   const [data, setData] = useState([]);
+  const [infoData, setInfoData] = useState({});
+  console.log(infoData);
 
   const regphone = /^0[0-9]{1,2}-[0-9]{3,4}-[0-9]{4}/;
 
@@ -174,6 +176,21 @@ const Data = () => {
     setData([...validData, ...invalidData]);
   };
 
+  const transformData = () => {
+    const transformedData = data.map((item) => ({
+      familyInfo: {
+        name: item.name,
+        phoneNumber: item.phone_number,
+      },
+      petInfo: {
+        name: item.petName,
+        type: item.type,
+        species: item.species,
+      },
+    }));
+    setInfoData(transformedData);
+  };
+
   return (
     <>
       <input type="file" onChange={uploadExcel} />
@@ -200,6 +217,7 @@ const Data = () => {
         style={{ width: "80%", backgroundColor: "purple" }}
         onClick={() => {
           sortData(data);
+          transformData();
         }}
       >
         완료
