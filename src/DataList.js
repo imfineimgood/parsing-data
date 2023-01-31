@@ -43,7 +43,7 @@ const DataList = ({ item, onValidate, onItemChange }) => {
             <input
               type="text"
               name={element}
-              value={dataValue[element]}
+              value={dataValue[element] || ""}
               onChange={handleForm}
               style={{
                 height: "30px",
