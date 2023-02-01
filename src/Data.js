@@ -193,7 +193,7 @@ const Data = () => {
       },
       petInfo: {
         name: item.petName,
-        type: item.type,
+        type: item.type === "개" ? 0 : item.type === "고양이" ? 1 : 2,
         species: item.species,
       },
     }));
