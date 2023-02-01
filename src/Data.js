@@ -5,8 +5,6 @@ import DataList from "./DataList";
 const Data = () => {
   const [data, setData] = useState([]);
   const [infoData, setInfoData] = useState({});
-  console.log(infoData);
-
   const regphone = /^0[0-9]{1,2}-[0-9]{3,4}-[0-9]{4}/;
 
   function uploadExcel(event) {
@@ -17,14 +15,17 @@ const Data = () => {
       let read_buffer = read(fdata, { type: "binary" });
       read_buffer.SheetNames.forEach(function (sheetName) {
         let rowdata = utils.sheet_to_json(read_buffer.Sheets[sheetName]);
-        const newData = setDefaultData(rowdata);
-        setType(newData);
-        const result = checkDuplicate(newData);
-        sortData(result);
+        handleData(rowdata);
       });
     };
     reader.readAsBinaryString(input[0]);
   }
+  const handleData = (data) => {
+    const newData = setDefaultData(data);
+    setType(newData);
+    const result = checkDuplicate(newData);
+    sortData(result, false);
+  };
 
   const formatPhoneNumber = (value) => {
     const firstLength = value.length > 9 ? 3 : 2;
@@ -98,7 +99,7 @@ const Data = () => {
             ? "고양이"
             : item.type.toLowerCase() === "canine"
             ? "개"
-            : "etc";
+            : "기타";
         return item.type;
       }
     });
@@ -113,18 +114,28 @@ const Data = () => {
     return result;
   };
 
+  const removeErrorType = (item, key) => {
+    const index = item.errorType.findIndex((element) => {
+      return element === key;
+    });
+    if (index !== -1) {
+      item.errorType.splice(index, 1);
+    }
+  };
+
   const checkPhoneNumber = (item) => {
     if (!regphone.test(item.phone_number)) {
       if (item.errorType.indexOf("phone_number") === -1) {
         item.errorType.push("phone_number");
       }
     } else {
-      const index = item.errorType.findIndex((element) => {
-        return element === "phone_number";
-      });
-      if (index !== -1) {
-        item.errorType.splice(index, 1);
-      }
+      removeErrorType(item, "phone_number");
+    }
+  };
+
+  const checkType = (item) => {
+    if (item.type === "개" || item.type === "고양이" || item.type === "기타") {
+      removeErrorType(item, "type");
     }
   };
 
@@ -137,13 +148,10 @@ const Data = () => {
       } else {
         if (key === "phone_number") {
           checkPhoneNumber(item);
+        } else if (key === "type") {
+          checkType(item);
         } else {
-          const index = item.errorType.findIndex((element) => {
-            return element === key;
-          });
-          if (index !== -1) {
-            item.errorType.splice(index, 1);
-          }
+          removeErrorType(item, key);
         }
       }
     });
@@ -167,10 +175,14 @@ const Data = () => {
     setData(refreshedData);
   };
 
-  const sortData = (data) => {
+  const sortData = (data, isClicked) => {
     const [validData, invalidData] = validateData(data);
     checkError(invalidData);
     setData([...validData, ...invalidData]);
+
+    if (isClicked && data.length !== 0 && invalidData.length === 0) {
+      transformData();
+    }
   };
 
   const transformData = () => {
@@ -186,6 +198,8 @@ const Data = () => {
       },
     }));
     setInfoData(transformedData);
+    console.log("complete");
+    console.log(transformedData);
   };
 
   return (
@@ -223,8 +237,7 @@ const Data = () => {
           border: "none",
         }}
         onClick={() => {
-          sortData(data);
-          transformData();
+          sortData(data, true);
         }}
       >
         완료
