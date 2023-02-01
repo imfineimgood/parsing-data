@@ -5,8 +5,6 @@ import DataList from "./DataList";
 const Data = () => {
   const [data, setData] = useState([]);
   const [infoData, setInfoData] = useState({});
-  console.log(infoData);
-
   const regphone = /^0[0-9]{1,2}-[0-9]{3,4}-[0-9]{4}/;
 
   function uploadExcel(event) {
@@ -20,7 +18,7 @@ const Data = () => {
         const newData = setDefaultData(rowdata);
         setType(newData);
         const result = checkDuplicate(newData);
-        sortData(result);
+        sortData(result, false);
       });
     };
     reader.readAsBinaryString(input[0]);
@@ -167,10 +165,14 @@ const Data = () => {
     setData(refreshedData);
   };
 
-  const sortData = (data) => {
+  const sortData = (data, isClicked) => {
     const [validData, invalidData] = validateData(data);
     checkError(invalidData);
     setData([...validData, ...invalidData]);
+
+    if (isClicked && data.length !== 0 && invalidData.length === 0) {
+      transformData();
+    }
   };
 
   const transformData = () => {
@@ -186,6 +188,7 @@ const Data = () => {
       },
     }));
     setInfoData(transformedData);
+    console.log("complete");
   };
 
   return (
@@ -223,8 +226,7 @@ const Data = () => {
           border: "none",
         }}
         onClick={() => {
-          sortData(data);
-          transformData();
+          sortData(data, true);
         }}
       >
         완료
