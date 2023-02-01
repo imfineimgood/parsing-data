@@ -9,10 +9,12 @@ const Data = () => {
   const [infoData, setInfoData] = useState({});
 
   const handleData = (data) => {
-    const newData = convertData(data);
-    const result = checkDuplicate(newData);
-    sortData(result, false);
+    const convertedData = convertData(data);
+    const checkedData = checkDuplicate(convertedData);
+    const sortedData = sortData(checkedData);
+    setData(sortedData);
   };
+
   const uploadExcel = useExcel(handleData);
 
   const formatPhoneNumber = (value) => {
@@ -63,15 +65,20 @@ const Data = () => {
   const validateData = (data) => {
     const validData = data.filter(validateItem);
     const invalidData = data.filter((item) => !validData.includes(item));
+    checkError(invalidData);
     return [validData, invalidData];
   };
 
-  const sortData = (data, isClicked) => {
+  const sortData = (data) => {
     const [validData, invalidData] = validateData(data);
-    checkError(invalidData);
+    return [...validData, ...invalidData];
+  };
+
+  const handleClick = (data) => {
+    const [validData, invalidData] = validateData(data);
     setData([...validData, ...invalidData]);
 
-    if (isClicked && data.length !== 0 && invalidData.length === 0) {
+    if (data.length !== 0 && invalidData.length === 0) {
       transformData();
     }
   };
@@ -90,11 +97,12 @@ const Data = () => {
       .map((item) => ({
         ...item,
         type:
-          item.type.toLowerCase() === "feline"
+          item.type &&
+          (item.type.toLowerCase() === "feline"
             ? "고양이"
             : item.type.toLowerCase() === "canine"
             ? "개"
-            : "기타",
+            : "기타"),
       }));
   };
 
@@ -181,6 +189,7 @@ const Data = () => {
       },
     }));
     setInfoData(transformedData);
+    console.log("!");
   };
 
   return (
@@ -218,7 +227,7 @@ const Data = () => {
           border: "none",
         }}
         onClick={() => {
-          sortData(data, true);
+          handleClick(data);
         }}
       >
         완료
