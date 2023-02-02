@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import DataList from "./DataList";
 import useExcel from "./useExcel";
 
@@ -15,7 +15,11 @@ const Data = () => {
     setData(sortedData);
   };
 
-  const parsingExcel = useExcel(handleData);
+  const { parsedData, parsingExcel } = useExcel();
+
+  useEffect(() => {
+    handleData(parsedData);
+  }, [parsedData]);
 
   const convertData = (data) => {
     return data
@@ -189,7 +193,6 @@ const Data = () => {
       },
     }));
     setInfoData(transformedData);
-    console.log("!");
   };
 
   return (

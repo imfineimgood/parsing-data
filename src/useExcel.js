@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { read, utils } from "xlsx";
 
-export default function useExcel(onSuccess) {
+export default function useExcel() {
+  const [parsedData, setParsedData] = useState([]);
   const parsingExcel = (event) => {
     const input = event.target.files;
     const reader = new FileReader();
@@ -9,11 +11,11 @@ export default function useExcel(onSuccess) {
       const read_buffer = read(fdata, { type: "binary" });
       read_buffer.SheetNames.forEach(function (sheetName) {
         const rowdata = utils.sheet_to_json(read_buffer.Sheets[sheetName]);
-        onSuccess && onSuccess(rowdata);
+        setParsedData(rowdata);
       });
     };
     reader.readAsBinaryString(input[0]);
   };
 
-  return parsingExcel;
+  return { parsedData, parsingExcel };
 }
