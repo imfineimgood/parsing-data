@@ -9,11 +9,50 @@ const Data = () => {
   const [infoData, setInfoData] = useState({});
 
   const handleData = (data) => {
-    const newData = convertData(data);
-    const result = checkDuplicate(newData);
-    sortData(result, false);
+    const convertedData = convertData(data);
+    const checkedData = checkDuplicate(convertedData);
+    const sortedData = sortData(checkedData);
+    setData(sortedData);
   };
-  const uploadExcel = useExcel(handleData);
+
+  const parsingExcel = useExcel(handleData);
+
+  const convertData = (data) => {
+    return data
+      .map((v) => ({
+        id: v.동물번호 ? v.동물번호 : v.환자ID,
+        petName: v.환자 ? v.환자 : v.동물명,
+        name: v.고객명 ? v.고객명 : v.보호자,
+        species: v.품종,
+        type: v.종,
+        phone_number: v.핸드폰 ? v.핸드폰 : v.Mobile ? v.Mobile : v.전화,
+        errorType: [],
+      }))
+      .map((item) => ({
+        ...item,
+        type:
+          item.type &&
+          (item.type.toLowerCase() === "feline"
+            ? "고양이"
+            : item.type.toLowerCase() === "canine"
+            ? "개"
+            : "기타"),
+      }));
+  };
+
+  const checkDuplicate = (data) => {
+    const map = new Map();
+    data.forEach((data) => {
+      map.set(data.id, data);
+    });
+    const result = [...map.values()];
+    return result;
+  };
+
+  const sortData = (data) => {
+    const [validData, invalidData] = validateData(data);
+    return [...validData, ...invalidData];
+  };
 
   const formatPhoneNumber = (value) => {
     const firstLength = value.length > 9 ? 3 : 2;
@@ -63,48 +102,17 @@ const Data = () => {
   const validateData = (data) => {
     const validData = data.filter(validateItem);
     const invalidData = data.filter((item) => !validData.includes(item));
+    checkError(invalidData);
     return [validData, invalidData];
   };
 
-  const sortData = (data, isClicked) => {
+  const handleClick = (data) => {
     const [validData, invalidData] = validateData(data);
-    checkError(invalidData);
     setData([...validData, ...invalidData]);
 
-    if (isClicked && data.length !== 0 && invalidData.length === 0) {
+    if (data.length !== 0 && invalidData.length === 0) {
       transformData();
     }
-  };
-
-  const convertData = (data) => {
-    return data
-      .map((v) => ({
-        id: v.동물번호 ? v.동물번호 : v.환자ID,
-        petName: v.환자 ? v.환자 : v.동물명,
-        name: v.고객명 ? v.고객명 : v.보호자,
-        species: v.품종,
-        type: v.종,
-        phone_number: v.핸드폰 ? v.핸드폰 : v.Mobile ? v.Mobile : v.전화,
-        errorType: [],
-      }))
-      .map((item) => ({
-        ...item,
-        type:
-          item.type.toLowerCase() === "feline"
-            ? "고양이"
-            : item.type.toLowerCase() === "canine"
-            ? "개"
-            : "기타",
-      }));
-  };
-
-  const checkDuplicate = (data) => {
-    const map = new Map();
-    data.forEach((data) => {
-      map.set(data.id, data);
-    });
-    const result = [...map.values()];
-    return result;
   };
 
   const removeErrorType = (item, key) => {
@@ -181,11 +189,12 @@ const Data = () => {
       },
     }));
     setInfoData(transformedData);
+    console.log("!");
   };
 
   return (
     <>
-      <input type="file" onChange={uploadExcel} />
+      <input type="file" onChange={parsingExcel} />
       <table style={{ width: "95%", margin: "auto" }}>
         <thead
           style={{
@@ -218,7 +227,7 @@ const Data = () => {
           border: "none",
         }}
         onClick={() => {
-          sortData(data, true);
+          handleClick(data);
         }}
       >
         완료
