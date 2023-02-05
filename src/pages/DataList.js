@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 
 const DataList = ({ item, onValidate, onItemChange }) => {
+  const regphone = /^0[0-9]{1,2}-[0-9]{3,4}-[0-9]{4}/;
   const [dataValue, setDataValue] = useState({
     id: item.id,
     petName: item.petName,
@@ -13,7 +14,7 @@ const DataList = ({ item, onValidate, onItemChange }) => {
 
   const formatPhone = (value) => {
     return value
-      .replace(/[^0-9]/g, "")
+      .replace(/-/g, "")
       .replace(/^(\d{2,3})(\d{3,4})(\d{4})$/, `$1-$2-$3`);
   };
 
@@ -39,7 +40,14 @@ const DataList = ({ item, onValidate, onItemChange }) => {
     <>
       <tr>
         {INPUT_MAP.map((element) => (
-          <td key={element} style={{ height: "50px" }}>
+          <td
+            key={element}
+            style={{
+              height: "50px",
+              borderStyle: "double",
+              borderColor: "#7d3fff",
+            }}
+          >
             <input
               type="text"
               name={element}
@@ -49,6 +57,7 @@ const DataList = ({ item, onValidate, onItemChange }) => {
                 height: "30px",
                 border: "none",
                 fontSize: "15px",
+                backgroundColor: "transparent",
               }}
             />
             {item.errorType.includes(element) ? (
