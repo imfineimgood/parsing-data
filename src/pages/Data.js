@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import DataList from "./DataList";
-import useExcel from "./useExcel";
+import useExcel from "../hooks/useExcel";
 
 const regphone = /^0[0-9]{1,2}-[0-9]{3,4}-[0-9]{4}/;
 
@@ -193,6 +193,7 @@ const Data = () => {
       },
     }));
     setInfoData(transformedData);
+    console.log(transformedData);
   };
 
   return (
@@ -202,11 +203,22 @@ const Data = () => {
         <thead
           style={{
             height: "45px",
+            backgroundColor: "#7d3fff",
           }}
         >
           <tr>
             {TITLE_MAP.map((item, i) => (
-              <th key={i}>{item}</th>
+              <th
+                key={i}
+                style={{
+                  color: "#ffffff",
+                  borderTopLeftRadius: i === 0 ? "30px" : "",
+                  borderTopRightRadius:
+                    i === TITLE_MAP.length - 1 ? "30px" : "",
+                }}
+              >
+                {item}
+              </th>
             ))}
           </tr>
         </thead>
@@ -223,8 +235,9 @@ const Data = () => {
       </table>
       <button
         style={{
-          width: "90px",
-          height: "30px",
+          marginLeft: "5%",
+          width: "90%",
+          height: "40px",
           backgroundColor: "#7d3fff",
           color: "white",
           border: "none",
@@ -242,3 +255,60 @@ const Data = () => {
 export default Data;
 
 const TITLE_MAP = ["동물이름", "보호자", "휴대폰번호", "동물품종", "동물종"];
+
+// const sortData = (data) => {
+//   const [validData, invalidData] = validateData(data);
+//   return [...validData, ...invalidData];
+// };
+
+// const formatPhoneNumber = (value) => {
+//   const firstLength = value.length > 9 ? 3 : 2;
+//   return [
+//     value.slice(0, firstLength),
+//     value.slice(firstLength, value.length - 4),
+//     value.slice(value.length - 4),
+//   ].join("-");
+// };
+
+// const validatePhoneNumber = (phoneNumber) => {
+//   const value = phoneNumber.replace(/-/g, "");
+//   if (!(value.length === 9 || value.length === 10 || value.length === 11)) {
+//     return false;
+//   }
+
+//   const validPhone = formatPhoneNumber(value);
+
+//   if (!regphone.test(validPhone)) {
+//     return false;
+//   }
+
+//   return validPhone;
+// };
+
+// const validateItem = (item) => {
+//   if (
+//     !item.id ||
+//     !item.petName ||
+//     !item.name ||
+//     !item.species ||
+//     !item.type ||
+//     !item.phone_number
+//   ) {
+//     return false;
+//   }
+
+//   const phoneNumber = validatePhoneNumber(item.phone_number);
+//   if (!phoneNumber) {
+//     return false;
+//   }
+
+//   item.phone_number = phoneNumber;
+//   return true;
+// };
+
+// const validateData = (data) => {
+//   const validData = data.filter(validateItem);
+//   const invalidData = data.filter((item) => !validData.includes(item));
+//   checkError(invalidData);
+//   return [validData, invalidData];
+// };

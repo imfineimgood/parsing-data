@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { read, utils } from "xlsx";
 
-export default function useExcel() {
+const useExcel = () => {
   const [parsedData, setParsedData] = useState([]);
+
   const parsingExcel = (event) => {
     const input = event.target.files;
     const reader = new FileReader();
@@ -18,4 +19,6 @@ export default function useExcel() {
   };
 
   return { parsedData, parsingExcel };
-}
+};
+
+export default useExcel;
